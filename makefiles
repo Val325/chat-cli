@@ -1,0 +1,12 @@
+OBJServer = server.cpp
+OBJClient = client.cpp
+CFLAG = -Wall -g
+CC = g++
+INCLUDE = -Iinclude
+LIBS = 
+
+client:${OBJClient}
+   g++ client.cpp -Iinclude -lws2_32 -o client.exe
+
+server:${OBJServer}
+   g++ server.cpp -Iinclude -lws2_32 -o server.exe
