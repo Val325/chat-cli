@@ -1,66 +1,36 @@
-#include <asio.hpp>
-#include <functional>
 #include <iostream>
-#include <memory>
+#include <string>
 
-void callback(
-        const std::error_code& error,
-        std::size_t bytes_transferred,
-        std::shared_ptr<asio::ip::tcp::socket> socket,
-        std::string str)
+#include <asio.hpp>
+
+int main(int argc, char* argv[])
 {
-    if (error)
-    {
-        std::cout << error.message() << '\n';
-    }
-    else if (bytes_transferred == str.length())
-    {
-        std::cout << "Message is sent successfully!" << '\n';
-    }
-    else
-    {
-        socket->async_send(
-                asio::buffer(str.c_str() + bytes_transferred, str.length() - bytes_transferred),
-                std::bind(callback, std::placeholders::_1, std::placeholders::_2, socket, str));
-    }
-}
+    using asio::ip::tcp;
+    asio::io_context io_context;
+    
+    tcp::socket socket(io_context);
+    tcp::resolver resolver(io_context);
+
+    asio::connect(socket, resolver.resolve("127.0.0.1", "4444"));
+    
+    std::string name;
+    std::cout << "Enter your name: "; // no flush needed
+    std::cin >> name;
+
+    std::string data;
+    std::cout << "Enter your message: "; // no flush needed
+    std::cin >> data;
 
 
-int main()
-{
-    try
-    {
-        for (;;) {
-        asio::io_context io_context;
+    std::string message;
+    message = name + " : " + data;
+    auto result = asio::write(socket, asio::buffer(message));
 
-        asio::ip::tcp::endpoint endpoint{
-                asio::ip::make_address("127.0.0.1"),
-                3303};
+    std::cout << "data sent: " << data.length() << '/' << result << std::endl;
 
-        std::shared_ptr<asio::ip::tcp::socket> socket{new asio::ip::tcp::socket{io_context}};
-        
-        socket->connect(endpoint);
-        
-        std::cout << "Connect to " << endpoint << " successfully!\n";
+    std::error_code ec;
+    socket.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+    socket.close();
 
-        std::string str{""};
-        std::cout << "your message: ";
-        std::cin >> str;
-        std::cout << std::endl;
-        if (!str.empty()) {
-            socket->async_send(
-                asio::buffer(str),
-                std::bind(callback, std::placeholders::_1, std::placeholders::_2, socket, str));
-        }
-        
-        io_context.run();
-        }
-    }
-
-    catch (std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        return -1;
-    }
     return 0;
 }

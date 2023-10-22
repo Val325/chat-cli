@@ -9,4 +9,4 @@ client:${OBJClient}
    g++ client.cpp -Iinclude -lws2_32 -o client.exe
 
 server:${OBJServer}
-   g++ server.cpp -Iinclude -lws2_32 -o server.exe
+   g++ server.cpp -Iinclude -lws2_32 -lwsock32 -o server.exe
